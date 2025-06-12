@@ -1,0 +1,28 @@
+config:
+  target: "http://localhost:5173/"  # URL base da API
+  phases:
+    - duration: 60        # duração total de 60 segundos
+      arrivalRate: 50     # 50 usuários virtuais iniciando por segundo
+
+scenarios:
+  - flow:
+      - get:
+          url: "/"          # Testando o endpoint raiz
+      - get:
+          url: "/test-db"    # Teste de conexão com o banco
+      - get:
+          url: "/auth"       # Autenticação da API
+      - post:
+          url: "/login"
+          json:
+            username: "user"
+            password: "senha"
+      - get:
+          url: "/api/users"  # Endpoint protegido
+      - get:
+          url: "/api/alerts" # Teste de alertas
+      - get:
+          url: "/api/markers" # Endpoint de markers
+      - think: 2              # Pausa simulando interação do usuário
+      - get:
+          url: "/Mapa"        # Teste de rota protegida

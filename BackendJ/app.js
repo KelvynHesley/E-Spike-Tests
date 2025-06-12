@@ -16,7 +16,10 @@ const app = express();
 
 // Configuração do CORS
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin:[
+        'http://localhost:5173',
+         'http://frontend:5173',   // Frontend no Docker
+        'http://127.0.0.1:5173'],
     credentials: true,
 }));
 
@@ -31,6 +34,19 @@ mongoose.connect(mongoURI, {
 })
     .then(() => console.log('MongoDB conectado!'))
     .catch(err => console.error('Erro ao conectar ao MongoDB:', err.message));
+
+const mongoHost = process.env.MONGO_HOST || 'localhost';
+const mongoPort = process.env.MONGO_PORT || '27017';
+const mongoDatabase = process.env.MONGO_DB || 'MeuBanco';
+//const mongoDTI = process.env.MONGO_URI || `mongodb://${mongoHost}:${mongoPort}/${mongoDatabase}`;
+
+mongoose.connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+    .then(() => console.log(`MongoDB conectado em ${mongoURI}!`))
+    .catch(err => console.error('Erro ao conectar ao MongoDB:', err.message));
+
 
 // Rotas públicas
 app.get('/', (req, res) => {

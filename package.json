@@ -4,14 +4,16 @@
   "description": "Uma iniciativa de um projeto de aplicação Web, onde o foco é na segurança por navegação em mapas. Nesta primeira versão, temos o login com autenticação, atualização dos dados do usuário, a integração completa com a API do Google Maps, além de recursos como sistema de Alertas e Ocorrências.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "snyk:test": "snyk test",
+    "snyk:monitor": "snyk monitor"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.7.7",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -19,9 +21,11 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.0",
     "oh-vue-icons": "^1.0.0-rc3",
-    "primeicons": "^7.0.0"
+    "primeicons": "^7.0.0",
+    "zaproxy": "^2.0.0-rc.6"
   },
   "devDependencies": {
+    "artillery": "^2.0.21",
     "nodemon": "^3.1.7"
   }
 }

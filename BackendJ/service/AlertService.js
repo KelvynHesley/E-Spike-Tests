@@ -4,27 +4,33 @@ class AlertService {
     // Criar novo alerta
     async createAlert(alertData, userId) {
         try {
-            // Validação dos dados
-            console.log('Dados recebidos', {alertData, userId})
-
-            //const userId = req.user._id;
+            console.log('Dados recebidos', { alertData, userId });
             console.log('user_id:', userId);
 
-            if (!alertData.alert_message || !alertData.severity_level || !alertData.latitude || !alertData.longitude || !userId) {
-                throw new Error('Dados do alerta incompletos');  // Use throw para lançar o erro
+            // Validação dos dados obrigatórios
+            if (
+                !alertData.alert_message ||
+                !alertData.severity_level ||
+                alertData.latitude === undefined ||
+                alertData.longitude === undefined ||
+                !userId
+            ) {
+                throw new Error('Dados do alerta incompletos');
             }
 
-            console.log('Criando alerta com userId:', userId); // Log do userId
+            console.log('Criando alerta com userId:', userId);
+
             const alert = new Alert({
                 ...alertData,
                 user_id: userId,
                 alert_time: new Date()
             });
-            const savedAlert = await alert.save();
-            return await alert.save;
+
+            const savedAlert = await alert.save(); // ✅ Corrigido
+            return savedAlert;
         } catch (error) {
             console.error('Erro ao criar alerta:', error);
-            throw error; // Propaga o erro para ser tratado no controller
+            throw error;
         }
     }
 
@@ -33,7 +39,7 @@ class AlertService {
         try {
             const alerts = await Alert.find({ active: true })
                 .sort({ alert_time: -1 })
-                .populate('user_id', 'name'); // Popula o nome do usuário se necessário
+                .populate('user_id', 'name'); // Popula o nome do usuário
             return alerts;
         } catch (error) {
             console.error('Erro ao buscar alertas:', error);
@@ -44,8 +50,7 @@ class AlertService {
     // Buscar alertas próximos
     async getNearbyAlerts(latitude, longitude, radius = 1000) {
         try {
-            // Converte o raio de metros para graus (aproximadamente)
-            const radiusInDegrees = radius / 111320; // 1 grau ≈ 111.32 km
+            const radiusInDegrees = radius / 111320; // Aproximação
 
             const alerts = await Alert.find({
                 active: true,
