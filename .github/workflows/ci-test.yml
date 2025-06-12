@@ -1,0 +1,32 @@
+name: Teste de Integração e Saúde
+
+# Define quando este fluxo de trabalho deve rodar
+on:
+  push:
+    branches: [ main ] # Roda toda vez que houver um push para a branch 'main'
+  pull_request:
+    branches: [ main ] # Roda toda vez que um pull request for aberto para a 'main'
+
+# Define os "trabalhos" (jobs) a serem executados
+jobs:
+  build-and-test:
+    # Usa a versão mais recente do Ubuntu como o "computador" na nuvem
+    runs-on: ubuntu-latest
+
+    # Define os passos do trabalho
+    steps:
+      # 1. Baixa o seu código do repositório para o runner
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # 3. Dá um tempo para os serviços (especialmente o DB) iniciarem completamente
+      - name: Aguardar inicialização dos serviços
+        run: echo "Aguardando 30 segundos para os serviços iniciarem..." && sleep 30
+
+      # 4. Dá permissão de execução para os scripts
+      - name: Dar permissão de execução
+        run: chmod +x health-check.sh monitor.sh
+
+      # 5. Executa o script de teste de saúde
+      - name: Executar o teste de saúde da infraestrutura
+        run: ./health-check.sh
