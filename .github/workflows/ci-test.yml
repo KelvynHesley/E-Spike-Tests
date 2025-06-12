@@ -3,9 +3,12 @@ name: Teste de Integração e Saúde
 # Define quando este fluxo de trabalho deve rodar
 on:
   push:
-    branches: [ main ] # Roda toda vez que houver um push para a branch 'main'
+    branches:
+      - main
+      - 'feature/**'
   pull_request:
-    branches: [ main ] # Roda toda vez que um pull request for aberto para a 'main'
+    branches:
+      - main
 
 # Define os "trabalhos" (jobs) a serem executados
 jobs:

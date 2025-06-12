@@ -1,61 +1,49 @@
 name: Teste de Build (Frontend e Backend)
 
-# Gatilhos: Roda em pushes e pull requests para a branch main
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - 'feature/**'
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
-# Define os trabalhos que rodarão em paralelo
 jobs:
-  # Job para o Frontend
   build-frontend:
     name: Build do Frontend (Vue.js)
-    runs-on: ubuntu-latest # Usa a última versão do Ubuntu
-
-    steps:
-      # 1. Baixa o código do repositório
-      - name: Checkout do código
-        uses: actions/checkout@v4
-
-      # 2. Configura o ambiente Node.js para garantir a versão correta
-      - name: Configurar Node.js v20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'npm' # Ativa o cache de dependências para acelerar builds futuros
-          cache-dependency-path: Frontend/package-lock.json
-
-      # 3. Instala as dependências do Frontend
-      - name: Instalar dependências do Frontend
-        working-directory: ./Frontend # MUITO IMPORTANTE: executa o comando na pasta do frontend
-        run: npm install --force
-
-      # 4. Executa o build de produção do Vite
-      - name: Executar o Build do Frontend
-        working-directory: ./Frontend
-        run: npm run build
-
-  # Job para o Backend
-  build-backend:
-    name: Build do Backend (Node.js)
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Baixa o código do repositório
       - name: Checkout do código
         uses: actions/checkout@v4
-
-      # 2. Configura o ambiente Node.js
+        
       - name: Configurar Node.js v20
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          cache-dependency-path: BackendJ/package-lock.json
-      
-      # 3. Instala as dependências do Backend
-      - name: Instalar dependências do Backend
+          cache-dependency-path: Frontend/package-lock.json 
+          
+      - name: Instalar dependências e Build do Frontend
+        working-directory: ./Frontend 
+        run: |
+          npm install --force
+          npm run build
+
+  build-backend:
+    name: Build do Backend (Node.js)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        
+      - name: Configurar Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: BackendJ/package-lock.json 
+          
+      - name: Instalar Dependências do Backend
         working-directory: ./BackendJ
         run: npm install
