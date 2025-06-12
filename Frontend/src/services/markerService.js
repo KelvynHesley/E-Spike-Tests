@@ -39,7 +39,9 @@ const MarkerService = {
      */
     async getMarkerById(markerId) {
         try {
+            console.log(`Buscando marcador por ID: ${markerId}`); // Log para depuração
             const response = await axios.get(`${BASE_URL}/${markerId}`);
+            console.log('Resposta ao buscar marcador por ID:', response.data); // Log para depuração
             return response.data;
         } catch (error) {
             console.error('Erro ao buscar marcador por ID:', error);

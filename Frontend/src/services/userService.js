@@ -1,19 +1,24 @@
 import axios from 'axios';
 
+// --- Instância do Axios Corrigida ---
 const apiClient = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5174/api/users',
+    // baseURL deve ser apenas a raiz da sua API no backend
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5174', // <-- CORRIGIDO
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // Adicionando o token
+        // O header de autorização foi REMOVIDO daqui. O interceptor abaixo é a forma correta.
     },
     timeout: 10000
 });
 
-// Response interceptor for error handling
+
+// --- Interceptor de Requisição ---
+// Esta é a forma CORRETA de adicionar o token dinamicamente a cada requisição.
 apiClient.interceptors.request.use(
     config => {
         const token = localStorage.getItem('token');
         if (token) {
+            // Adiciona o cabeçalho apenas se o token existir
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -21,40 +26,44 @@ apiClient.interceptors.request.use(
     error => Promise.reject(error)
 );
 
+
 export default {
+    /**
+     * Registra um novo usuário.
+     * Aponta para a rota PÚBLICA /register. Não precisa de token.
+     */
     async createUser(userData) {
         try {
-            const response = await apiClient.post('', userData);
+            // Aponta para a rota de registro pública que criamos no backend
+            const response = await apiClient.post('/register', userData); // <-- CORRIGIDO
             return response;
         } catch (error) {
             throw error;
         }
     },
 
+    /**
+     * Busca os dados do usuário logado.
+     * Aponta para a rota PROTEGIDA /api/users/me. Precisa de token.
+     */
     async getUser() {
         try {
-            const response = await apiClient.get('me');  // Usando apiClient com a URL base já configurada
+            // Adiciona o caminho completo da API, pois a baseURL agora é a raiz
+            const response = await apiClient.get('/api/users/me'); // <-- CORRIGIDO
             return response.data;
         } catch (error) {
             throw error;
         }
     },
 
-// Método para atualizar os dados do usuário por email
-    // Método para atualizar os dados do usuário por email
+    /**
+     * Atualiza os dados do usuário por email.
+     * Aponta para a rota PROTEGIDA. Precisa de token.
+     */
     async updateUser(email, userData) {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('Token não encontrado no localStorage.');
-            }
-
-            console.log('Token:', token);
-            console.log('Headers antes da requisição:', apiClient.defaults.headers);
-            console.log('Dados sendo atualizados:', userData); // Verificando os dados que estão sendo enviados
-            console.log('URL de atualização:', `email/${email}`);
-
-            const response = await apiClient.put(`email/${email}`, userData);
+            // Adiciona o caminho completo da API
+            const response = await apiClient.put(`/api/users/email/${email}`, userData); // <-- CORRIGIDO
             console.log('Resposta do servidor:', response.data);
             return response.data;
         } catch (error) {
@@ -63,12 +72,14 @@ export default {
         }
     },
 
-
+    /**
+     * Deleta um usuário por email.
+     * Aponta para a rota PROTEGIDA. Precisa de token.
+     */
     async deleteUserByEmail(email) {
         try {
-            // Conserta a URL adicionando '/' antes do email
-            console.log('Deletando usuário:', email);
-            const response = await apiClient.delete(`/email/${email}`);
+            // Adiciona o caminho completo da API
+            const response = await apiClient.delete(`/api/users/email/${email}`); // <-- CORRIGIDO
             console.log('Resposta da deleção:', response.data);
             return response.data;
         } catch (error) {

@@ -26,7 +26,11 @@ export default {
       setTimeout(() => {
         this.isClicked = false;
       }, 200);
-      this.$router.push(this.rotaBtn); // Navigate to the defined route
+      this.$router.push('/suspect').then(() => {
+        this.$nextTick(() => {
+          console.log("Rota carregada corretamente");
+        });
+      });
     }
   }
 }

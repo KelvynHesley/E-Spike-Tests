@@ -1,1 +1,23 @@
-node_modules
+# Arquivos de log e de ambiente
+*.log
+monitoring.log
+.env
+.env.*
+!.env.example
+
+# Dependências (nunca devem ser enviadas)
+/node_modules
+/Frontend/node_modules
+/Frontend/package-lock.json
+/BackendJ/node_modules
+
+# Arquivos de build do frontend
+/frontend/dist
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Pastas de configuração de editores
+.vscode/
+.idea/

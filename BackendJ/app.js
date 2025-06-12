@@ -3,72 +3,63 @@ const mongoose = require('mongoose');
 const cors = require("cors");
 const dotenv = require('dotenv');
 
-const { router: userRouter } = require('./controller/UserController');
+dotenv.config();
+
+// --- IMPORTAÇÃO DAS ROTAS E CONTROLADORES ---
+const { registerUser, userRouter } = require('./controller/UserController'); // Nova importação
 const authRoutes = require('./controller/AuthController');
 const alertRoutes = require('./controller/AlertController');
-const { authenticate } = require('./middleware/authenticate');
 const occurrenceRoutes = require('./controller/OcurrenceController');
-
 const markerRoutes = require('./controller/MarkerController');
-dotenv.config();
+const { authenticate } = require('./middleware/authenticate');
 
 const app = express();
 
-// Configuração do CORS
-app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true,
-}));
-
-// Middleware para interpretar JSON
+// --- CONFIGURAÇÕES DE MIDDLEWARE ---
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
-// Conexão com o banco de dados MongoDB
+// --- CONEXÃO COM O BANCO DE DADOS ---
 const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/MeuBanco';
-mongoose.connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-    .then(() => console.log('MongoDB conectado!'))
-    .catch(err => console.error('Erro ao conectar ao MongoDB:', err.message));
+mongoose.connect(mongoURI)
+    .then(() => console.log(`MongoDB conectado com sucesso em ${mongoURI}!`))
+    .catch(err => console.error('ERRO AO CONECTAR AO MONGODB:', err.message));
 
-// Rotas públicas
-app.get('/', (req, res) => {
-    res.send('Servidor Express rodando!');
-});
+// =================================================================================
+// --- ROTAS DA APLICAÇÃO (ORDEM CORRETA) ---
+// =================================================================================
 
-app.get('/test-db', async (req, res) => {
-    try {
-        const result = await mongoose.connection.db.collection('a').findOne({});
-        res.json(result);
-    } catch (error) {
-        res.status(500).send('Erro ao conectar ao banco de dados');
+// --- ROTAS PÚBLICAS ---
+
+// Rota de verificação de saúde
+app.get('/health', (req, res) => {
+    const isMongoConnected = mongoose.connection.readyState === 1;
+    if (isMongoConnected) {
+        res.status(200).json({ status: 'OK', database: 'connected' });
+    } else {
+        res.status(503).json({ status: 'ERROR', database: 'disconnected' });
     }
 });
 
-// Rotas de autenticação
+// Rotas de Autenticação (Login)
 app.use('/auth', authRoutes);
 
-// Rotas protegidas (necessitam autenticação)
+// **NOVA ROTA PÚBLICA PARA REGISTRO DE USUÁRIO**
+app.post('/register', registerUser);
+
+
+// --- ROTAS PROTEGIDAS ---
+// Qualquer rota abaixo desta linha precisará de um token válido
+
+// Monta as rotas de usuário protegidas (ex: /api/users/me)
 app.use('/api/users', authenticate, userRouter);
+
+// Monta outras rotas protegidas
 app.use('/api/alerts', authenticate, alertRoutes);
+app.use('/api/occurrences', authenticate, occurrenceRoutes); // Adicionado 'authenticate' se for protegida
+app.use('/api/markers', authenticate, markerRoutes); // Adicionado 'authenticate' se for protegida
 
-// Rota de teste protegida
-app.use('/protected', authenticate, (req, res) => {
-    res.send('Rota protegida, você está autenticado!');
-});
-
-//rota para ocorrencias
-app.use('/api/occurrences', occurrenceRoutes);
-
-//rota para marcadores
-app.use('/api/markers', markerRoutes); // Adicione esta linha para definir a rota /api/markers
-
-
-
-
-
-// Iniciar o servidor
+// --- INICIAR O SERVIDOR ---
 const PORT = process.env.PORT || 5174;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);

@@ -12,6 +12,8 @@
           <h2 class="text-3xl lg:text-4xl">Seja bem-vindo</h2>
           <h2 class="text-3xl lg:text-4xl">ao E-Spike!</h2>
           <br />
+          <h1 class="text-blue-700 left-0"> Use agora o sistema de prevençao de riscos! Entenda como está o seu arredor. </h1>
+          <br>
           <BotaoRedondo rotaBtn="/Cadastro">Cadastre-se</BotaoRedondo>
           <br>
           <br>

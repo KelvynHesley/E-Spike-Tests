@@ -1,5 +1,5 @@
 // services/MarkerService.js
-const Marker = require('../model/Marker');
+const Marker = require('../model/Marker.JS');
 const router = require('express').Router();
 
 const createMarker = async (markerData) => {

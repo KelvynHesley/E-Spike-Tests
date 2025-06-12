@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div id="map" :style="{ height: '90vh', width: '95vw' }"></div>
+    <div ref="mapContainer" :style="{ height: '90vh', width: '95vw' }"></div>
   </div>
 </template>
 
@@ -23,104 +23,92 @@ export default {
     return {
       map: null,
       markers: [],
-      circle: null,
+      userMarker: null,
     };
   },
   methods: {
-    /**
-     * Inicializa o mapa e adiciona os eventos necessários.
-     */
     async initializeMap() {
-      const loader = new Loader({
-        apiKey: this.apiKey,
-        version: 'weekly',
-      });
+      try {
+        const loader = new Loader({
+          apiKey: this.apiKey,
+          version: 'weekly',
+        });
 
-      await loader.load();
+        await loader.load();
 
-      this.map = new google.maps.Map(document.getElementById('map'), {
-        center: {lat: -23.5979089, lng: -46.9269129},
-        zoom: 16,
-      });
+        if (!this.$refs.mapContainer) {
+          console.error('Elemento do mapa não encontrado.');
+          return;
+        }
 
-      // Evento de clique no mapa
-      this.map.addListener('click', (event) => {
-        const position = {
-          lat: event.latLng.lat(),
-          lng: event.latLng.lng(),
-        };
+        this.map = new google.maps.Map(this.$refs.mapContainer, {
+          center: { lat: -23.5979089, lng: -46.9269129 }, // Local padrão antes de obter a posição
+          zoom: 16,
+        });
 
-        // Emitir evento para o componente pai abrir o formulário de ocorrência
-        this.$emit('map-clicked', position);
-      });
-
-      // Adiciona os marcadores já existentes
-      this.points.forEach((point) => this.addMarker(point));
-
-      // Adiciona um círculo vermelho no mapa
-      this.addCircle({lat: -23.5979089, lng: -46.9269129});
+        this.getUserLocation(); // Obtém e adiciona marcador para localização do usuário
+        this.updateMarkers(); // Atualiza os outros marcadores
+      } catch (error) {
+        console.error('Erro ao inicializar o mapa:', error);
+      }
     },
 
     /**
-     * Adiciona um marcador no mapa com base nos dados fornecidos.
-     * @param {Object} point - Dados do marcador { latitude, longitude, description }.
+     * Obtém a localização do usuário e adiciona um marcador
      */
+    getUserLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          this.map.setCenter(userLocation);
+
+          if (this.userMarker) {
+            this.userMarker.setMap(null);
+          }
+
+          this.userMarker = new google.maps.Marker({
+            position: userLocation,
+            map: this.map,
+            title: 'Sua localização',
+            icon: {
+              url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+            },
+          });
+        }, (error) => {
+          console.error('Erro ao obter localização do usuário:', error);
+        });
+      } else {
+        console.error('Geolocalização não suportada no navegador.');
+      }
+    },
+
+    updateMarkers() {
+      this.points.forEach((point) => this.addMarker(point));
+    },
+
     addMarker(point) {
+      if (!point.latitude || !point.longitude) return;
+
       const marker = new google.maps.Marker({
-        position: {lat: point.latitude, lng: point.longitude},
+        position: { lat: point.latitude, lng: point.longitude },
         map: this.map,
         title: point.description || 'Marcador',
       });
 
-      // Emitir evento quando o marcador for clicado
       marker.addListener('click', () => {
         this.$emit('marker-clicked', point);
       });
 
       this.markers.push(marker);
     },
-
-    /**
-     * Adiciona um círculo vermelho no mapa.
-     * @param {Object} center - Coordenadas do centro do círculo { lat, lng }.
-     */
-    addCircle(center) {
-      if (this.circle) {
-        this.circle.setMap(null); // Remove o círculo anterior, se houver
-      }
-
-      this.circle = new google.maps.Circle({
-        strokeColor: '#FF0000',
-        strokeOpacity: 0.8,
-        strokeWeight: 2,
-        fillColor: '#FF0000',
-        fillOpacity: 0.15,
-        map: this.map,
-        center: center,
-        radius: 500, // Raio em metros
-      });
-    },
-
-    /**
-     * Remove todos os marcadores do mapa e reinicializa a lista.
-     */
-    clearMarkers() {
-      this.markers.forEach((marker) => marker.setMap(null));
-      this.markers = [];
-    },
-  },
-  watch: {
-    /**
-     * Observa alterações nos pontos e atualiza os marcadores no mapa.
-     */
-    points(newPoints) {
-      this.clearMarkers();
-      newPoints.forEach((point) => this.addMarker(point));
-    },
   },
   mounted() {
-    this.initializeMap().catch((error) => {
-      console.error('Erro ao inicializar o mapa:', error);
+    this.$nextTick(() => {
+      this.initializeMap();
     });
   },
 };
