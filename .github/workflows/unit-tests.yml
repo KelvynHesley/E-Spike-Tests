@@ -1,0 +1,65 @@
+# Nome do workflow, que aparecerá na aba "Actions"
+name: Testes Unitários (Frontend e Backend)
+
+# Gatilhos para rodar o workflow
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Job para rodar os testes unitários do frontend
+  frontend-unit-tests:
+    name: Frontend (Vitest) Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Baixa o código do repositório
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        
+      # 2. Configura o ambiente Node.js com cache
+      - name: Configurar Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          
+      # 3. Instala as dependências na pasta do frontend
+      - name: Instalar dependências
+        working-directory: ./Frontend
+        run: npm install --force
+
+      # 4. Executa o comando de teste definido no package.json
+      - name: Executar Testes Unitários do Frontend
+        working-directory: ./Frontend
+        run: npm test
+
+  # Job para rodar os testes unitários do backend
+  backend-unit-tests:
+    name: Backend (Jest) Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Baixa o código do repositório
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        
+      # 2. Configura o ambiente Node.js com cache
+      - name: Configurar Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          
+      # 3. Instala as dependências na pasta do backend
+      - name: Instalar Dependências do Backend
+        working-directory: ./BackendJ
+        run: npm install
+
+      # 4. Executa o comando de teste definido no package.json
+      - name: Executar Testes Unitários do Backend
+        working-directory: ./BackendJ
+        run: npm test
