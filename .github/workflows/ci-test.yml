@@ -1,35 +1,28 @@
-name: Teste de Integração e Saúde
-
-# Define quando este fluxo de trabalho deve rodar
+name: Teste de Integração e Monitoramento
 on:
   push:
-    branches:
-      - main
-      - 'feature/**'
+    branches: [ main, 'feature/**' ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
-# Define os "trabalhos" (jobs) a serem executados
 jobs:
-  build-and-test:
-    # Usa a versão mais recente do Ubuntu como o "computador" na nuvem
+  integration-and-monitoring-test:
+    name: Teste de Infraestrutura Completa
     runs-on: ubuntu-latest
-
-    # Define os passos do trabalho
     steps:
-      # 1. Baixa o seu código do repositório para o runner
-      - name: Checkout do código
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Subir a infraestrutura
+        run: docker compose up -d --build
+      - name: Aguardar inicialização
+        run: echo "Aguardando 30 segundos..." && sleep 30
 
-      # 3. Dá um tempo para os serviços (especialmente o DB) iniciarem completamente
-      - name: Aguardar inicialização dos serviços
-        run: echo "Aguardando 30 segundos para os serviços iniciarem..." && sleep 30
-
-      # 4. Dá permissão de execução para os scripts
-      - name: Dar permissão de execução
-        run: chmod +x health-check.sh monitor.sh
-
-      # 5. Executa o script de teste de saúde
-      - name: Executar o teste de saúde da infraestrutura
-        run: ./health-check.sh
+      # --- ETAPA DE TESTE REFEITA ---
+      - name: 1. Verificar se o Frontend está respondendo
+        run: >
+          docker compose exec -T backend
+          sh -c "apk add --no-cache curl && curl -s --head http://frontend:80 | grep '200 OK'"
+      
+      - name: 2. Verificar se o Backend está saudável
+        run: >
+          docker compose exec -T backend
+          sh -c "apk add --no-cache curl && curl -s http://localhost:5174/health | grep '\"database\":\"connected\"'"
